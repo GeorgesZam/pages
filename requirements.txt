@@ -1,0 +1,3 @@
+# Laissez vide ou listez des paquets Python **purs** compatibles Pyodide.
+# Exemples possibles: numpy, pandas==2.0.3 (selon disponibilité des wheels WebAssembly).
+# ⚠️ Les paquets nécessitant des extensions natives (C/C++) ne fonctionneront pas dans stlite.
