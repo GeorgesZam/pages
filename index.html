@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Streamlit sur GitHub Pages (stlite)</title>
+    <meta name="description" content="Modèle Streamlit exécuté dans le navigateur via stlite + Pyodide, déployé sur GitHub Pages." />
+    <style>
+      html, body, #app { height: 100%; margin: 0; padding: 0; }
+      .loading { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; 
+                 display: flex; align-items: center; justify-content: center; height: 100%; 
+                 font-size: 16px; opacity: 0.7; }
+      .error { color: #b91c1c; padding: 1rem; }
+      .footer { position: fixed; bottom: 8px; right: 12px; font-size: 12px; opacity: .6; }
+      .footer a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="loading">Chargement de l'app… (stlite + Pyodide)</div>
+    </div>
+    <!-- stlite: Streamlit in the browser (Pyodide/WASM) -->
+    <script src="https://cdn.jsdelivr.net/npm/stlite@0.38.0/dist/index.js"></script>
+    <script>
+      (async () => {
+        try {
+          const fetchText = async (path) => {
+            const res = await fetch(path, { cache: "no-store" });
+            if (!res.ok) throw new Error(path + " : " + res.status + " " + res.statusText);
+            return await res.text();
+          };
+          const [py, reqs] = await Promise.all([
+            fetchText("app.py").catch(() => ""),
+            fetch("requirements.txt", { cache: "no-store" }).then(r => r.ok ? r.text() : "").catch(() => ""),
+          ]);
+
+          const requirements = (reqs || "")
+            .split("\n")
+            .map(l => l.trim())
+            .filter(l => l && !l.startsWith("#"));
+
+          // Mount the Streamlit app into #app
+          window.stlite.mount(
+            { requirements, files: { "app.py": py || 'import streamlit as st\nst.title("App manquante")\nst.write("Aucun app.py trouvé.")' }, entrypoint: "app.py" },
+            document.getElementById("app")
+          );
+        } catch (err) {
+          const app = document.getElementById("app");
+          app.innerHTML = '<div class="error">Erreur de chargement : ' + (err?.message || err) + '</div>';
+          console.error(err);
+        }
+      })();
+    </script>
+    <div class="footer">
+      Propulsé par <a href="https://github.com/whitphx/stlite" target="_blank" rel="noreferrer">stlite</a> · GitHub Pages
+    </div>
+  </body>
+</html>
